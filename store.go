@@ -4,7 +4,7 @@ import "database/sql"
 
 type Store interface {
 	// Feeds
-	CreateFeed() error
+	CreateFeed(f *Feed) (*Feed, error)
 }
 
 type Storage struct {
@@ -17,6 +17,20 @@ func NewStore(db *sql.DB) *Storage {
 	}
 }
 
-func (s *Storage) CreateFeed() error {
-	return nil
+func (s *Storage) CreateFeed(f *Feed) (*Feed, error) {
+	rows, err := s.db.Exec(`
+		INSERT INTO feeds (title, url)
+		VALUES (?, ?)
+		`, f.Title, f.URL)
+	if err != nil {
+		return nil, err
+	}
+
+	id, err := rows.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	f.ID = id
+	return f, nil
 }
