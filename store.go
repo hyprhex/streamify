@@ -5,6 +5,9 @@ import (
 )
 
 type Store interface {
+	// Users
+	CreateUser(u *User) (*User, error)
+
 	// Feeds
 	CreateFeed(f *Feed) (*Feed, error)
 	ListFeed() ([]Feed, error)
@@ -18,6 +21,24 @@ func NewStore(db *sql.DB) *Storage {
 	return &Storage{
 		db: db,
 	}
+}
+
+func (s *Storage) CreateUser(u *User) (*User, error) {
+	rows, err := s.db.Exec(`
+		INSERT INTO users (username, email, password) 
+		VALUES (?, ?, ?)
+		`, u.Username, u.Email, u.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	id, err := rows.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	u.ID = id
+	return u, nil
 }
 
 func (s *Storage) CreateFeed(f *Feed) (*Feed, error) {
