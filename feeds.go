@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	errTitleRequired = errors.New("Title is required")
+	errTitleRequired = errors.New("title is required")
 	errURLRequired   = errors.New("URL is required")
 )
 
@@ -59,6 +59,13 @@ func (s *FeedsService) handleCreateFeed(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *FeedsService) handleListFeed(w http.ResponseWriter, r *http.Request) {
+	f, err := s.store.ListFeed()
+	if err != nil {
+		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, f)
 }
 
 func validateFeedPayload(feed *Feed) error {

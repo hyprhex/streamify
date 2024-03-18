@@ -1,10 +1,13 @@
 package main
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 type Store interface {
 	// Feeds
 	CreateFeed(f *Feed) (*Feed, error)
+	ListFeed() ([]Feed, error)
 }
 
 type Storage struct {
@@ -33,4 +36,25 @@ func (s *Storage) CreateFeed(f *Feed) (*Feed, error) {
 
 	f.ID = id
 	return f, nil
+}
+
+func (s *Storage) ListFeed() ([]Feed, error) {
+	var feeds []Feed
+	rows, err := s.db.Query(`
+		SELECT * FROM feeds
+		`)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var f Feed
+		if err := rows.Scan(&f.ID, &f.Title, &f.URL, &f.CreatedAt, &f.UpdatedAt); err != nil {
+			return nil, err
+		}
+
+		feeds = append(feeds, f)
+	}
+
+	return feeds, nil
 }
