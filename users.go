@@ -69,6 +69,28 @@ func (s *UsersService) handleRegisterUser(w http.ResponseWriter, r *http.Request
 }
 
 func (s *UsersService) handleLoginUser(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		WriteJSON(w, http.StatusBadRequest, ErrorResponse{Error: "Error reading request body"})
+		return
+	}
+
+	defer r.Body.Close()
+
+	user := new(LoginUserRequest)
+	err = json.Unmarshal(body, user)
+	if err != nil {
+		WriteJSON(w, http.StatusBadRequest, ErrorResponse{Error: "Invalid request body"})
+		return
+	}
+
+	u, err := s.store.LoginUser(user)
+	if err != nil {
+		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, u)
 }
 
 func validateUserPayload(user *User) error {

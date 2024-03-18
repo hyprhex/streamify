@@ -2,11 +2,14 @@ package main
 
 import (
 	"database/sql"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Store interface {
 	// Users
 	CreateUser(u *User) (*User, error)
+	LoginUser(u *LoginUserRequest) (*LoginUserRequest, error)
 
 	// Feeds
 	CreateFeed(f *Feed) (*Feed, error)
@@ -38,6 +41,30 @@ func (s *Storage) CreateUser(u *User) (*User, error) {
 	}
 
 	u.ID = id
+	return u, nil
+}
+
+func (s *Storage) LoginUser(u *LoginUserRequest) (*LoginUserRequest, error) {
+	rows, err := s.db.Query(`
+		SELECT username, password FROM users WHERE username = ?
+	`, u.Username)
+	if err != nil {
+		return nil, err
+	}
+
+	userPW := u.Password
+	for rows.Next() {
+		err = rows.Scan(&u.Username, &u.Password)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(userPW))
+	if err != nil {
+		return nil, err
+	}
+
 	return u, nil
 }
 

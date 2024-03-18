@@ -15,6 +15,11 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type LoginUserRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 type Feed struct {
 	ID        int64     `json:"id"`
 	Title     string    `json:"title"`
